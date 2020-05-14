@@ -35,6 +35,10 @@ class EarlyStopping:
         self.train_score = np.empty(max_n_estimators)
 
 
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+
     def _make_estimator(self, append=True):
         """Make and configure a copy of the `estimator` attribute.
 
