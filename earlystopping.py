@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __date__ = '20200513'
+__author__ = 'Jeremy Charlier'
 # https://betatim.github.io/posts/stop-ensemble-growth-early/
 # https://machinelearningmastery.com/tune-number-size-decision-trees-xgboost-python/
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 from sklearn.datasets import load_breast_cancer
 from sklearn.ensemble import RandomForestClassifier
@@ -39,9 +41,9 @@ class EarlyStopping:
 
 
     def _make_estimator(self, append=True):
-        """Make and configure a copy of the `estimator` attribute.
-
-        Any estimator that has a `warm_start` option will work.
+        """
+        make and configure a copy of the estimator attribute.
+        any estimator that has a `warm_start` option will work.
         """
         estimator = clone(self.estimator)
         estimator.n_estimators = 1
@@ -50,10 +52,10 @@ class EarlyStopping:
 
 
     def fit(self):
-        """Fit `estimator` using X and y as training set.
-
-        Fits up to `max_n_estimators` iterations and measures the performance
-        on a separate dataset using `scorer`
+        """
+        fit estimator on train set
+        fits up to max_n_estimators iterations and measures the performance
+        on test set
         """
         est = self._make_estimator()
         self.scores_ = []
@@ -65,12 +67,12 @@ class EarlyStopping:
             yscoretrain = est.predict_proba(self.xtrain)
             yscoretest = est.predict_proba(self.xtest)
 
-            score = 1 - roc_auc_score(y_test, yscoretest[:,1])
+            score = 1 - roc_auc_score(self.ytest, yscoretest[:,1])
             self.estimator_ = est
             self.scores_.append(score)
 
-            self.train_score[n_est-1] = 1-roc_auc_score(y_train, yscoretrain[:,1])
-            self.test_score[n_est-1] = 1-roc_auc_score(y_test, yscoretest[:,1])
+            self.train_score[n_est-1] = 1-roc_auc_score(self.ytrain, yscoretrain[:,1])
+            self.test_score[n_est-1] = 1-roc_auc_score(self.ytest, yscoretest[:,1])
 
             if (n_est > self.n_min_iterations and
                 score > self.scale*np.min(self.scores_)):
