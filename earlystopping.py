@@ -10,7 +10,6 @@ import numpy as np
 from sklearn.datasets import load_breast_cancer
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.inspection import permutation_importance
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from sklearn.base import ClassifierMixin, clone
