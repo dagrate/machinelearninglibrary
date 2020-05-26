@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
-from sklearn.base import ClassifierMixin, clone
+from sklearn.base import clone
 
 
 class EarlyStopping:
@@ -22,7 +22,7 @@ class EarlyStopping:
                  max_n_estimators,
                  xtrain, ytrain,
                  xtest, ytest,
-                 n_min_iterations=50, scale=1.02):
+                 n_min_iterations=2, scale=1.02):
         self.estimator = estimator
         self.max_n_estimators = max_n_estimators
         self.xtrain = xtrain
@@ -47,7 +47,7 @@ class EarlyStopping:
         """
         estimator = clone(self.estimator)
         estimator.n_estimators = 1
-        estimator.warm_start = True
+        # estimator.warm_start = True
         return estimator
 
 
@@ -58,7 +58,7 @@ class EarlyStopping:
         on test set
         """
         est = self._make_estimator()
-        self.scores_ = []
+        scores_ = []
 
         for n_est in range(1, self.max_n_estimators+1):
             est.n_estimators = n_est
@@ -69,21 +69,22 @@ class EarlyStopping:
 
             score = 1 - roc_auc_score(self.ytest, yscoretest[:,1])
             self.estimator_ = est
-            self.scores_.append(score)
+            scores_.append(score)
 
             self.train_score[n_est-1] = 1-roc_auc_score(self.ytrain, yscoretrain[:,1])
             self.test_score[n_est-1] = 1-roc_auc_score(self.ytest, yscoretest[:,1])
 
             if (n_est > self.n_min_iterations and
-                score > self.scale*np.min(self.scores_)):
+                score > self.scale*np.min(scores_)):
                 return self
 
         return self
 
     def validationCurve(self):
         best_iter = np.argmin(self.test_score) - 1
-        test_line = plt.plot(self.test_score, label='test')
 
+        plt.figure()
+        test_line = plt.plot(self.test_score, label='test')
         colour = test_line[-1].get_color()
         plt.plot(self.train_score, '--', color=colour, label='train')
 
@@ -91,6 +92,7 @@ class EarlyStopping:
         plt.ylabel("1 - area under ROC")
         plt.legend(loc='best')
         plt.xlim(0, best_iter)
+        plt.tight_layout()
         return best_iter
 
 
@@ -101,7 +103,6 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
 
     ntrees = 100
-    clf = RandomForestClassifier(n_estimators=ntrees, random_state=42)
     clf = RandomForestClassifier(n_estimators=ntrees, random_state=42)
     clf = XGBClassifier(n_estimators=ntrees, random_state=42)
 
